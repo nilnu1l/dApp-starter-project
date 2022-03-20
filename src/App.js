@@ -10,7 +10,9 @@ const App = () => {
 
     console.log("CurrentAccount: ", currentAccount);
     
-    const contractAddress = process.env.CONTRACT_ADDRESS;
+    // const contractAddress = process.env.CONTRACT_ADDRESS;
+    const contractAddress = "0xEc0beC6970F24B4D17E79fc1Faf7c213a6644fF3";
+    console.log('contract address: ', contractAddress);
 
     const contractABI = abi.abi;
     
@@ -65,7 +67,7 @@ const App = () => {
                 wavePortalContract.off("NewWave", onNewWave);
             }
         };
-    }, []);
+    }, [contractABI, contractAddress]);
 
     const checkIfWalletIsConnected = async () => {
         try {
@@ -117,12 +119,26 @@ const App = () => {
                 let count = await wavePortalContract.getTotalWaves();
                 console.log("Retrived total wave count...", count.toNumber());
 
+                let contractBalance = await provider.getBalance(
+                    wavePortalContract.address
+                );
+                console.log("contract balance: ", ethers.utils.formatEther(contractBalance));
+
                 const waveTxn = await wavePortalContract.wave(messageValue, {gasLimit: 300000});
                 console.log("Mining...", waveTxn.hash);
                 await waveTxn.wait();
                 console.log("Mined -- ", waveTxn.hash);
                 count = await wavePortalContract.getTotalWaves();
                 console.log("Retrived total wave count...", count.toNumber());
+
+                let contractBalance_post = await provider.getBalance(wavePortalContract.address);
+                if (contractBalance_post < contractBalance) {
+                    console.log("User won ETH");
+                } else {
+                    console.log("User didn't win ETH ");
+                }
+                console.log("Contract balance after wave: ",
+                ethers.utils.formatEther(contractBalance_post));
             } else {
                 console.log("Ethereum object doesn't exist!");
             } 
